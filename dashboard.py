@@ -147,7 +147,10 @@ def component_bar_chart(df, height=200):
         textposition="outside",
         hovertemplate="%{x}: %{y}<extra></extra>"
     ))
-    fig.update_layout(**CHART_LAYOUT, height=height, yaxis=dict(range=[0, 1.1], showgrid=True, gridcolor="rgba(128,128,128,0.15)"))
+    # build layout without yaxis first, then override yaxis separately
+    layout = {k: v for k, v in CHART_LAYOUT.items() if k != "yaxis"}
+    fig.update_layout(**layout, height=height)
+    fig.update_yaxes(range=[0, 1.1], showgrid=True, gridcolor="rgba(128,128,128,0.15)")
     return fig
 
 
@@ -235,30 +238,28 @@ prev   = flight_df.iloc[-2]
 
 # ── Top bar ───────────────────────────────────────────────────────────────────
 
-col_title, col_mode, col_status, col_time = st.columns([3, 1.2, 1.2, 1.2])
+col_title, col_badges = st.columns([2, 3])
 with col_title:
     st.markdown("## UAV Telemetry & AI Monitoring")
-with col_mode:
+with col_badges:
     mode = latest["flight_mode"]
-    color = "#ffc107" if mode == "AI Assist" else "#0d6efd"
-    st.markdown(f"""
-    <div style='background:{color}22;border:1px solid {color}55;border-radius:8px;
-    padding:8px 12px;text-align:center;margin-top:8px;'>
-    <span style='font-size:12px;font-weight:600;color:{color};'>✈ {mode}</span>
-    </div>""", unsafe_allow_html=True)
-with col_status:
+    mode_color = "#ffc107" if mode == "AI Assist" else "#0d6efd"
     s = latest["status"]
     sc = {"Normal": "#198754", "Warning": "#ffc107", "Envelope limit": "#dc3545"}.get(s, "#6c757d")
     st.markdown(f"""
-    <div style='background:{sc}22;border:1px solid {sc}55;border-radius:8px;
-    padding:8px 12px;text-align:center;margin-top:8px;'>
-    <span style='font-size:12px;font-weight:600;color:{sc};'>● {s}</span>
-    </div>""", unsafe_allow_html=True)
-with col_time:
-    st.markdown(f"""
-    <div style='background:#6c757d22;border:1px solid #6c757d44;border-radius:8px;
-    padding:8px 12px;text-align:center;margin-top:8px;'>
-    <span style='font-size:12px;color:#6c757d;'>🕐 {latest["timestamp"]}</span>
+    <div style='display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap;'>
+      <div style='background:{mode_color}22;border:1px solid {mode_color}55;border-radius:8px;
+        padding:7px 16px;white-space:nowrap;'>
+        <span style='font-size:13px;font-weight:600;color:{mode_color};'>✈ {mode}</span>
+      </div>
+      <div style='background:{sc}22;border:1px solid {sc}55;border-radius:8px;
+        padding:7px 16px;white-space:nowrap;'>
+        <span style='font-size:13px;font-weight:600;color:{sc};'>● {s}</span>
+      </div>
+      <div style='background:#6c757d22;border:1px solid #6c757d44;border-radius:8px;
+        padding:7px 16px;white-space:nowrap;'>
+        <span style='font-size:13px;color:#aaa;'>🕐 {latest["timestamp"]}</span>
+      </div>
     </div>""", unsafe_allow_html=True)
 
 st.markdown("---")
